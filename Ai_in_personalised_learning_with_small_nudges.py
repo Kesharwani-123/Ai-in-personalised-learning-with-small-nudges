@@ -9,10 +9,9 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 
 # Download NLTK data if not already present
 # The 'vader_lexicon' is used for a simple sentiment analysis
-# This is a one-time download and a good practice to include in the script
 try:
-    nltk.data.find('sentiment/vader_lexicon.zip')
-except nltk.downloader.DownloadError:
+    nltk.data.find('sentiment/vader_lexicon')
+except LookupError:
     nltk.download('vader_lexicon')
 
 # Initialize the sentiment analyzer
@@ -26,7 +25,6 @@ st.set_page_config(
 )
 
 # --- Session State Initialization ---
-# Use st.session_state to store data across user interactions
 if "goals" not in st.session_state:
     st.session_state.goals = {}
 if "progress" not in st.session_state:
@@ -39,8 +37,6 @@ if "sentiment" not in st.session_state:
     st.session_state.sentiment = 0.0
 
 # --- Nudge Messages and Logic ---
-
-# A collection of motivational nudges
 motivational_nudges = [
     "You're doing great! Keep up the fantastic work.",
     "A small step forward is still a step forward. You've got this!",
@@ -49,7 +45,6 @@ motivational_nudges = [
     "Progress isn't always linear. You're learning, and that's what matters."
 ]
 
-# A collection of nudges for when the user seems frustrated
 supportive_nudges = [
     "It's okay to feel stuck. Try taking a short break and come back with fresh eyes.",
     "Having a tough time? Maybe try a different approach or break the problem into smaller pieces.",
@@ -57,10 +52,6 @@ supportive_nudges = [
 ]
 
 def get_nudge(sentiment_score):
-    """
-    Generates a personalized nudge based on sentiment.
-    A sentiment score < -0.1 is considered negative.
-    """
     if sentiment_score < -0.1:
         nudge = random.choice(supportive_nudges)
         st.session_state.nudge_history.append(f"Supportive Nudge: {nudge}")
@@ -80,7 +71,6 @@ with st.sidebar:
 
     if st.button("Add Goal"):
         if new_goal:
-            # Add the new goal and initialize its progress
             st.session_state.goals[new_goal] = total_steps
             st.session_state.progress[new_goal] = 0
             st.success(f"Goal '{new_goal}' added!")
@@ -101,7 +91,6 @@ else:
     for goal, total_steps in st.session_state.goals.items():
         st.subheader(f"🎯 {goal}")
 
-        # Use a slider to update progress. We show progress as a percentage.
         current_progress_percent = st.slider(
             "Progress:",
             min_value=0,
@@ -111,32 +100,22 @@ else:
         )
         st.session_state.progress[goal] = current_progress_percent
 
-        # Display progress bar
         progress_percentage = (current_progress_percent / total_steps)
         st.progress(progress_percentage)
         st.write(f"{current_progress_percent}/{total_steps} steps complete.")
 
-        # Check for goal completion
         if current_progress_percent >= total_steps:
             st.balloons()
             st.success(f"Congratulations! You completed the goal: '{goal}'")
 
 # --- Sentiment-based Nudge Engine ---
 st.header("How are you feeling about your progress?")
-user_input = st.text_area(
-    "Express your feelings here:",
-    key="mood_input",
-    height=50
-)
+user_input = st.text_area("Express your feelings here:", key="mood_input", height=50)
 
-# Analyze sentiment and generate a nudge when the user submits their thoughts
 if st.button("Get Nudge"):
     if user_input:
-        # Get the sentiment score
         sentiment_score = sia.polarity_scores(user_input)['compound']
         st.session_state.sentiment = sentiment_score
-
-        # Display the nudge based on sentiment
         st.markdown("---")
         st.subheader("Personalized Nudge")
         st.success(get_nudge(sentiment_score))
@@ -162,5 +141,3 @@ st.markdown(
     This app is a starting point. It can be extended with more sophisticated AI models for richer personalization!
     """
 )
-
-      
