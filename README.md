@@ -1,0 +1,1 @@
+AI Learning Tracker is a data-driven application designed to help students and learners track their progress in AI and machine learning. It provides a structured way to log study hours, project milestones, and topics covered, offering visual insights into learning patterns and growth over time.
