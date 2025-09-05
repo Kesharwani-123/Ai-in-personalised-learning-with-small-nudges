@@ -1,10 +1,12 @@
 # ai_learning_tracker.py
 
+# Import necessary libraries
 import streamlit as st
 import pandas as pd
 import random
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
+from flask import Flask, render_template_string, request, jsonify
 
 # Download NLTK data if not already present
 try:
@@ -20,32 +22,6 @@ st.set_page_config(
     page_title="AI Learning Goal Tracker",
     page_icon="🧠",
     layout="wide",
-)
-
-# --- Inject custom CSS ---
-st.markdown(
-    """
-    <style>
-    .main {
-        max-width: 900px;
-        margin: auto;
-        padding: 20px;
-    }
-    .message-box {
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 1rem 2rem;
-        border-radius: 0.5rem;
-        background-color: #2563eb;
-        color: white;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        z-index: 1000;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
 )
 
 # --- Session State Initialization ---
@@ -159,6 +135,112 @@ st.markdown(
     
     * **Goal Setting:** Set your goals and track your progress.
     * **Progress Monitoring:** See your progress visually with the progress bar.
-    * **Personalized Nudges:** Sentiment analysis suggests a motivational or supportive nudge.
+    * **Personalized Nudges:** A simple sentiment analysis engine suggests a nudge based on your mood.
     """
 )
+
+# --- Flask App Section ---
+app = Flask(__name__)
+
+# Motivational quotes list
+motivational_quotes = [
+    "Don't watch the clock; do what it does. Keep going.",
+    "The only way to do great work is to love what you do.",
+    "Success is not final, failure is not fatal: It is the courage to continue that counts.",
+    "The future belongs to those who believe in the beauty of their dreams.",
+    "Believe you can and you're halfway there.",
+    "You are not weak, you are in a developing stage of your life.",
+    "Strength is the product of continuous struggle, not of effortless progress."
+]
+
+@app.route('/')
+def home():
+    """Serves the main HTML file."""
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mark Tracker & Goal Setter</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+        <style>
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: #1a202c;
+                color: #e2e8f0;
+            }
+            .container {
+                max-width: 900px;
+                margin: auto;
+            }
+            .message-box {
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 1rem 2rem;
+                border-radius: 0.5rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                z-index: 1000;
+                opacity: 0;
+                transition: opacity 0.5s ease-in-out;
+                pointer-events: none;
+            }
+            .message-box.show {
+                opacity: 1;
+                pointer-events: auto;
+            }
+        </style>
+    </head>
+    <body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen p-4">
+        <!-- (rest of your HTML unchanged) -->
+    </body>
+    </html>
+    """
+    return render_template_string(html_content)
+
+@app.route('/analyze_marks', methods=['POST'])
+def analyze_marks():
+    try:
+        marks_data = request.json
+        if not marks_data:
+            return jsonify({"error": "Invalid input"}), 400
+
+        total_marks = sum(item['marks'] for item in marks_data)
+        total_subjects = len(marks_data)
+        average_marks = total_marks / total_subjects
+
+        weak_subjects = [item for item in marks_data if item['marks'] < average_marks * 0.8]
+        weak_subjects_text = ", ".join([f"{item['subject']} ({item['marks']} marks)" for item in weak_subjects])
+
+        if weak_subjects:
+            quote = random.choice(motivational_quotes)
+        else:
+            quote = "Keep up the great work! Consistency is key to mastery."
+        
+        return jsonify({
+            "weak_subjects_text": weak_subjects_text,
+            "motivational_quote": quote
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/set_goal', methods=['POST'])
+def set_goal():
+    try:
+        data = request.json
+        days = int(data.get('days', 0))
+        if days <= 0:
+            return jsonify({"error": "Invalid number of days"}), 400
+
+        message = f"You have {days} days to complete your syllabus. Make a detailed plan, break down your tasks, and stay disciplined. You can do this!"
+        return jsonify({"message": message})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
