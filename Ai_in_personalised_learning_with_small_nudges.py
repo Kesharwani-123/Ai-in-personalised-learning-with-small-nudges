@@ -17,7 +17,7 @@ sia = SentimentIntensityAnalyzer()
 # --- Page Config ---
 st.set_page_config(page_title="AI Learning Goal Tracker", page_icon="🧠", layout="wide")
 
-# --- Session State ---
+# --- Session State Initialization ---
 if "goals" not in st.session_state:
     st.session_state.goals = {}
 if "progress" not in st.session_state:
@@ -27,11 +27,9 @@ if "history" not in st.session_state:
 if "tests" not in st.session_state:
     st.session_state.tests = []  # (month, subject, marks)
 if "subjects" not in st.session_state:
-    st.session_state.subjects = ["Maths", "Science", "English", "Social Studies", "Computer"]
+    st.session_state.subjects = ["Maths", "Science", "English"]
 
-# ----------------------------
-# Motivational Quotes
-# ----------------------------
+# --- Motivational Quotes ---
 quotes = [
     "Believe you can and you're halfway there!",
     "Your hard work will pay off!",
@@ -51,10 +49,9 @@ with st.sidebar:
     deadline = st.date_input("Deadline", datetime.date.today() + datetime.timedelta(days=7))
 
     if st.button("Add Goal"):
-        if goal:
-            st.session_state.goals[goal] = {"chapters": chapters, "deadline": deadline}
-            st.session_state.progress[goal] = 0
-            st.success(f"✅ Added goal: {goal}")
+        st.session_state.goals[goal] = {"chapters": chapters, "deadline": deadline}
+        st.session_state.progress[goal] = 0
+        st.success(f"✅ Added goal: {goal}")
 
     # Subject Manager
     st.subheader("📚 Manage Subjects")
@@ -132,4 +129,57 @@ with col1:
 with col2:
     if st.button("💡 Get Nudges"):
         if st.session_state.tests:
-            df_test = p_
+            df_test = pd.DataFrame(st.session_state.tests)
+            avg_score = df_test["marks"].mean()
+
+            # Generate nudge
+            if avg_score >= 75:
+                st.success("🚀 Outstanding! You're consistently performing well! ⭐")
+                st.info("💡 Quote: 'Success is the sum of small efforts, repeated day in and day out.'")
+            elif avg_score >= 50:
+                st.info("🙂 Good job! Keep pushing to reach higher scores 💪")
+                st.info("💡 Quote: 'Consistency is the key to mastery.'")
+            else:
+                st.warning("⚠️ You need more practice. Focus on weak subjects 🔎")
+                st.info("💡 Quote: 'Failure is simply the opportunity to begin again, this time more intelligently.'")
+
+# --- Display Test Marks & Graphs ---
+if st.session_state.tests:
+    df_test = pd.DataFrame(st.session_state.tests)
+
+    # Highlight marks < 35
+    st.subheader("📊 Test Marks Data")
+    def highlight_low(val):
+        return "color: red; font-weight: bold;" if val < 35 else "color: black"
+    styled_df = df_test.style.applymap(highlight_low, subset=["marks"])
+    st.dataframe(styled_df, use_container_width=True)
+
+    # Subject-wise Performance Graph
+    st.subheader("📈 Subject-wise Performance Over Months")
+    fig, ax = plt.subplots()
+    for subj in df_test["subject"].unique():
+        subj_df = df_test[df_test["subject"] == subj]
+        monthly_avg = subj_df.groupby("month")["marks"].mean().reindex(
+            ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+        )
+        ax.plot(monthly_avg.index, monthly_avg.values, marker="o", label=subj)
+
+    ax.set_ylabel("Marks")
+    ax.set_xlabel("Months")
+    ax.set_title("Performance per Subject Across Months")
+    ax.legend(title="Subjects")
+    ax.set_ylim(0, 100)
+    st.pyplot(fig)
+
+    # Overall Monthly Performance Graph
+    st.subheader("📊 Overall Monthly Performance (%)")
+    monthly_avg = df_test.groupby("month")["marks"].mean().reindex(
+        ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+    )
+    fig2, ax2 = plt.subplots()
+    ax2.plot(monthly_avg.index, monthly_avg.values, marker="o", color="blue", linewidth=2)
+    ax2.set_ylabel("Percentage")
+    ax2.set_xlabel("Months")
+    ax2.set_title("Overall Monthly Percentage Performance")
+    ax2.set_ylim(0, 100)
+    st.pyplot(fig2)
