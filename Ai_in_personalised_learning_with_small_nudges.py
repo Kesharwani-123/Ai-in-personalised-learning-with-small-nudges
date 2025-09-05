@@ -3,88 +3,6 @@ import pandas as pd
 import random
 import nltk
 import datetime
-from nltk.sentiment import SentimentIntensityAnalyzer
-import plotly.express as px
-
-# --- Setup ---
-try:
-    nltk.data.find('sentiment/vader_lexicon')
-except LookupError:
-    nltk.download('vader_lexicon')
-
-sia = SentimentIntensityAnalyzer()
-
-# --- Page Config ---
-st.set_page_config(page_title="AI Learning Goal Tracker", page_icon="🧠", layout="wide")
-
-# --- State ---
-if "goals" not in st.session_state:
-    st.session_state.goals = {}
-if "progress" not in st.session_state:
-    st.session_state.progress = {}
-if "history" not in st.session_state:
-    st.session_state.history = []  # (goal, progress, date)
-
-# --- Sidebar ---
-with st.sidebar:
-    st.title("⚙️ Goal Settings")
-    goal = st.text_input("🎯 New Goal")
-    steps = st.number_input("Total Steps", 1, 100, 10)
-    deadline = st.date_input("Deadline", datetime.date.today() + datetime.timedelta(days=7))
-
-    if st.button("Add Goal"):
-        st.session_state.goals[goal] = {"steps": steps, "deadline": deadline}
-        st.session_state.progress[goal] = 0
-        st.success(f"Added goal: {goal}")
-
-# --- Main UI ---
-st.title("🧠 AI Learning Goal Tracker")
-st.markdown("Track progress, get nudges, and stay motivated!")
-
-if not st.session_state.goals:
-    st.info("No goals yet. Add one from the sidebar 👉")
-else:
-    for g, info in st.session_state.goals.items():
-        st.subheader(f"🎯 {g}")
-        progress = st.slider(f"{g} progress", 0, info["steps"], st.session_state.progress[g], key=g)
-        st.session_state.progress[g] = progress
-        st.progress(progress/info["steps"])
-        st.caption(f"{progress}/{info['steps']} steps | Deadline: {info['deadline']}")
-
-        # Save history
-        st.session_state.history.append({"goal": g, "progress": progress, "date": datetime.date.today()})
-
-        if progress >= info["steps"]:
-            st.success("✅ Goal Completed!")
-            st.balloons()
-
-# --- Mood Check ---
-st.header("💬 How do you feel?")
-mood = st.text_area("Write your thoughts...")
-if st.button("Get Nudge") and mood:
-    score = sia.polarity_scores(mood)['compound']
-    if score > 0.2:
-        st.success("🚀 You're on fire! Keep the energy alive 🔥")
-    elif score < -0.2:
-        st.warning("😔 Feeling low? Take a break, then get back stronger 💪")
-    else:
-        st.info("🙂 Stay consistent, you’re on the right track!")
-
-# --- Analytics Section ---
-st.header("📊 Progress Analytics")
-if st.session_state.history:
-    df = pd.DataFrame(st.session_state.history)
-    line_chart = px.line(df, x="date", y="progress", color="goal", markers=True, title="Progress Over Time")
-    st.plotly_chart(line_chart, use_container_width=True)
-
-    latest = df.groupby("goal")["progress"].max().reset_index()
-    bar_chart = px.bar(latest, x="goal", y="progress", title="Latest Goal Progress", text="progress")
-    st.plotly_chart(bar_chart, use_container_width=True)
-    import streamlit as st
-import pandas as pd
-import random
-import nltk
-import datetime
 import matplotlib.pyplot as plt
 from nltk.sentiment import SentimentIntensityAnalyzer
 
@@ -112,14 +30,15 @@ if "tests" not in st.session_state:
 # --- Sidebar ---
 with st.sidebar:
     st.title("⚙️ Goal Settings")
-    goal = st.text_input("🎯 New Goal")
-    chapters = st.number_input("Total Chapters", 1, 100, 10)
-    deadline = st.date_input("Deadline", datetime.date.today() + datetime.timedelta(days=7))
+    goal = st.text_input("🎯 New Goal", key="goal_input")
+    chapters = st.number_input("Total Chapters", 1, 100, 10, key="chapters_input")
+    deadline = st.date_input("Deadline", datetime.date.today() + datetime.timedelta(days=7), key="deadline_input")
 
-    if st.button("Add Goal"):
-        st.session_state.goals[goal] = {"chapters": chapters, "deadline": deadline}
-        st.session_state.progress[goal] = 0
-        st.success(f"Added goal: {goal}")
+    if st.button("Add Goal", key="add_goal_btn"):
+        if goal.strip() != "":
+            st.session_state.goals[goal] = {"chapters": chapters, "deadline": deadline}
+            st.session_state.progress[goal] = 0
+            st.success(f"Added goal: {goal}")
 
 # --- Main UI ---
 st.title("🧠 AI Learning Goal Tracker")
@@ -130,7 +49,13 @@ if not st.session_state.goals:
 else:
     for g, info in st.session_state.goals.items():
         st.subheader(f"🎯 {g}")
-        progress = st.slider(f"{g} progress (in chapters)", 0, info["chapters"], st.session_state.progress[g], key=g)
+        progress = st.slider(
+            f"{g} progress (in chapters)",
+            0,
+            info["chapters"],
+            st.session_state.progress[g],
+            key=f"{g}_progress"
+        )
         st.session_state.progress[g] = progress
         st.progress(progress/info["chapters"])
         days_left = (info["deadline"] - datetime.date.today()).days
@@ -151,8 +76,8 @@ else:
 
 # --- Mood Check ---
 st.header("💬 How do you feel?")
-mood = st.text_area("Write your thoughts...")
-if st.button("Get Nudge") and mood:
+mood = st.text_area("Write your thoughts...", key="mood_input")
+if st.button("Get Nudge", key="nudge_btn") and mood:
     score = sia.polarity_scores(mood)['compound']
     if score > 0.2:
         st.success("🚀 You're on fire! Keep the energy alive 🔥")
@@ -163,14 +88,22 @@ if st.button("Get Nudge") and mood:
 
 # --- Monthly Test Marks ---
 st.header("📚 Monthly Test Performance")
-month = st.selectbox("Select Month", ["January","February","March","April","May","June","July","August","September","October","November","December"])
+month = st.selectbox(
+    "Select Month",
+    ["January","February","March","April","May","June","July","August","September","October","November","December"],
+    key="month_select"
+)
 subjects = ["Maths", "Science", "English", "Social Studies", "Computer"]
 
 marks_data = {}
 for subject in subjects:
-    marks_data[subject] = st.number_input(f"Enter {subject} marks (out of 100)", 0, 100, 50, key=f"{month}_{subject}")
+    marks_data[subject] = st.number_input(
+        f"Enter {subject} marks (out of 100)",
+        0, 100, 50,
+        key=f"{month}_{subject}_marks"
+    )
 
-if st.button("Save Test Marks"):
+if st.button("Save Test Marks", key="save_marks_btn"):
     for subject, marks in marks_data.items():
         st.session_state.tests.append({"month": month, "subject": subject, "marks": marks})
     st.success(f"✅ Saved subject-wise marks for {month}")
@@ -230,4 +163,3 @@ if st.session_state.history:
     ax.set_ylabel("Chapters Completed")
     ax.set_title("Latest Goal Progress")
     st.pyplot(fig)
-
