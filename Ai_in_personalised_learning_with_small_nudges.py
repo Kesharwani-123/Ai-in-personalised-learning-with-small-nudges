@@ -26,6 +26,8 @@ if "history" not in st.session_state:
     st.session_state.history = []  # (goal, progress, date)
 if "tests" not in st.session_state:
     st.session_state.tests = []  # (month, subject, marks)
+if "subjects" not in st.session_state:
+    st.session_state.subjects = ["Maths", "Science", "English", "Social Studies", "Computer"]
 
 # --- Sidebar ---
 with st.sidebar:
@@ -39,6 +41,14 @@ with st.sidebar:
             st.session_state.goals[goal] = {"chapters": chapters, "deadline": deadline}
             st.session_state.progress[goal] = 0
             st.success(f"Added goal: {goal}")
+
+    st.markdown("---")
+    st.subheader("📘 Subjects")
+    new_subject = st.text_input("Add new subject", key="new_subject_input")
+    if st.button("➕ Add Subject", key="add_subject_btn"):
+        if new_subject.strip() != "" and new_subject not in st.session_state.subjects:
+            st.session_state.subjects.append(new_subject)
+            st.success(f"Added subject: {new_subject}")
 
 # --- Main UI ---
 st.title("🧠 AI Learning Goal Tracker")
@@ -74,18 +84,6 @@ else:
             st.success("✅ Goal Completed!")
             st.balloons()
 
-# --- Mood Check ---
-st.header("💬 How do you feel?")
-mood = st.text_area("Write your thoughts...", key="mood_input")
-if st.button("Get Nudge", key="nudge_btn") and mood:
-    score = sia.polarity_scores(mood)['compound']
-    if score > 0.2:
-        st.success("🚀 You're on fire! Keep the energy alive 🔥")
-    elif score < -0.2:
-        st.warning("😔 Feeling low? Take a break, then get back stronger 💪")
-    else:
-        st.info("🙂 Stay consistent, you’re on the right track!")
-
 # --- Monthly Test Marks ---
 st.header("📚 Monthly Test Performance")
 month = st.selectbox(
@@ -93,51 +91,70 @@ month = st.selectbox(
     ["January","February","March","April","May","June","July","August","September","October","November","December"],
     key="month_select"
 )
-subjects = ["Maths", "Science", "English", "Social Studies", "Computer"]
 
 marks_data = {}
-for subject in subjects:
+for subject in st.session_state.subjects:
     marks_data[subject] = st.number_input(
         f"Enter {subject} marks (out of 100)",
         0, 100, 50,
         key=f"{month}_{subject}_marks"
     )
 
-if st.button("Save Test Marks", key="save_marks_btn"):
+col1, col2 = st.columns(2)
+with col1:
+    save_marks = st.button("💾 Save Test Marks", key="save_marks_btn")
+with col2:
+    get_nudge = st.button("💡 Get Nudge", key="get_nudge_btn")
+
+if save_marks:
     for subject, marks in marks_data.items():
         st.session_state.tests.append({"month": month, "subject": subject, "marks": marks})
     st.success(f"✅ Saved subject-wise marks for {month}")
 
+if get_nudge:
+    st.info("🔎 Analyzing your marks...")
+    if st.session_state.tests:
+        df_test = pd.DataFrame(st.session_state.tests)
+        for subj in df_test["subject"].unique():
+            sub_df = df_test[df_test["subject"] == subj]
+            if len(sub_df) > 1:
+                if sub_df["marks"].iloc[-1] > sub_df["marks"].iloc[-2]:
+                    st.success(f"📈 {subj}: Great improvement this month! 🚀")
+                elif sub_df["marks"].iloc[-1] < sub_df["marks"].iloc[-2]:
+                    st.warning(f"📉 {subj}: Marks dropped — focus more on this subject 🔎")
+                else:
+                    st.info(f"➖ {subj}: Consistent marks — aim to push higher!")
+
 if st.session_state.tests:
     df_test = pd.DataFrame(st.session_state.tests)
 
+    # Ensure all 12 months appear in chart
+    all_months = ["January","February","March","April","May","June","July","August","September","October","November","December"]
+    all_data = []
+    for subj in st.session_state.subjects:
+        for m in all_months:
+            val = df_test[(df_test["month"] == m) & (df_test["subject"] == subj)]
+            if not val.empty:
+                all_data.append({"month": m, "subject": subj, "marks": val["marks"].values[0]})
+            else:
+                all_data.append({"month": m, "subject": subj, "marks": 0})
+    df_test_full = pd.DataFrame(all_data)
+
     # Display raw marks table
     st.subheader("📊 Test Marks Data")
-    st.dataframe(df_test)
+    st.dataframe(df_test_full)
 
     # Line chart: subject-wise performance trend
-    st.subheader("📈 Subject-wise Performance Trend")
+    st.subheader("📈 Subject-wise Performance Trend (Full Year)")
     fig, ax = plt.subplots()
-    for subj in df_test["subject"].unique():
-        sub_df = df_test[df_test["subject"] == subj]
+    for subj in df_test_full["subject"].unique():
+        sub_df = df_test_full[df_test_full["subject"] == subj]
         ax.plot(sub_df["month"], sub_df["marks"], marker="o", label=subj)
     ax.set_ylabel("Marks")
     ax.set_xlabel("Month")
-    ax.set_title("Subject-wise Performance")
+    ax.set_title("Subject-wise Performance (Jan–Dec)")
     ax.legend()
     st.pyplot(fig)
-
-    # Nudges per subject
-    st.subheader("📝 Performance Nudges")
-    for subj in df_test["subject"].unique():
-        sub_df = df_test[df_test["subject"] == subj]
-        if len(sub_df) > 1:
-            if sub_df["marks"].iloc[-1] > sub_df["marks"].iloc[-2]:
-                st.success(f"📈 {subj}: Great improvement this month! 🚀")
-            elif sub_df["marks"].iloc[-1] < sub_df["marks"].iloc[-2]:
-                st.warning(f"📉 {subj}: Marks dropped — focus more on this subject 🔎")
-            else:
-                st.info(f"➖ {subj}: Consistent marks — aim to push higher!")
 
 # --- Analytics Section ---
 st.header("📊 Goal Progress Analytics")
