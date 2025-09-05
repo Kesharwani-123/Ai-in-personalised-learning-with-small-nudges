@@ -29,6 +29,7 @@ quotes = [
 # Subject Management
 # ----------------------------
 st.sidebar.header("📘 Subject Manager")
+
 new_subject = st.sidebar.text_input("Add New Subject")
 if st.sidebar.button("➕ Add Subject") and new_subject.strip():
     if new_subject not in st.session_state["subjects"]:
@@ -44,6 +45,7 @@ if st.sidebar.button("🗑 Remove Subject") and remove_subject:
 # Monthly Test Entry
 # ----------------------------
 st.header("📝 Monthly Test Marks Entry")
+
 col1, col2 = st.columns(2)
 with col1:
     month = st.selectbox("Select Month", 
@@ -55,6 +57,7 @@ with col2:
 marks = st.number_input("Enter Marks (0-100)", 0, 100)
 
 col_save, col_nudge = st.columns([1,1])
+
 with col_save:
     if st.button("💾 Save Test Marks"):
         st.session_state["test_data"].append({"month": month, "subject": subject, "marks": marks})
@@ -93,12 +96,13 @@ if not df_test.empty:
     # Subject-wise Performance Graph
     # ----------------------------
     st.subheader("📈 Subject-wise Performance Over Months")
+
     fig, ax = plt.subplots()
     for subj in df_test["subject"].unique():
         subj_df = df_test[df_test["subject"] == subj]
         monthly_avg = subj_df.groupby("month")["marks"].mean().reindex(
-            ["Jan","Feb","Mar","Apr","May","Jun","Jul",
-             "Aug","Sep","Oct","Nov","Dec"]
+            ["Jan","Feb","Mar","Apr","May","Jun",
+             "Jul","Aug","Sep","Oct","Nov","Dec"]
         )
         ax.plot(monthly_avg.index, monthly_avg.values, marker="o", label=subj)
 
@@ -113,10 +117,12 @@ if not df_test.empty:
     # Overall Monthly Percentage Graph
     # ----------------------------
     st.subheader("📊 Overall Monthly Performance (%)")
+
     monthly_avg = df_test.groupby("month")["marks"].mean().reindex(
-        ["Jan","Feb","Mar","Apr","May","Jun","Jul",
-         "Aug","Sep","Oct","Nov","Dec"]
+        ["Jan","Feb","Mar","Apr","May","Jun",
+         "Jul","Aug","Sep","Oct","Nov","Dec"]
     )
+
     fig2, ax2 = plt.subplots()
     ax2.plot(monthly_avg.index, monthly_avg.values, marker="o", color="blue", linewidth=2)
     ax2.set_ylabel("Percentage")
