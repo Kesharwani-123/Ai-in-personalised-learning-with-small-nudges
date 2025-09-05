@@ -36,6 +36,35 @@ quotes = [
     "Don’t stop until you’re proud.",
     "Difficult roads lead to beautiful destinations.",
     "Consistency is the key to success!"
+    "Small steps every day lead to big results."
+
+"Your future is created by what you do today."
+
+"Dream big, start small, act now."
+
+"Every mistake is a step closer to success."
+
+"Focus + Consistency = Success."
+
+"Don’t stop until you’re proud."
+
+"Push yourself, because no one else will."
+
+"Believe in yourself and magic happens."
+
+"Winners are not afraid of losing."
+
+"Discipline is the bridge between goals and success."
+
+"Your only limit is you."
+
+"Success is the reward of hard work."
+
+"Keep going, you’re closer than you think."
+
+"Stay positive, work hard, make it happen."
+
+"Consistency beats motivation."
 ]
 
 # --- Sidebar ---
