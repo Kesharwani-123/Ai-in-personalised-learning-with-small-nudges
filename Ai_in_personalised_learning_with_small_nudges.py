@@ -150,7 +150,7 @@ if st.session_state.tests:
     # Highlight marks < 35
     st.subheader("📊 Test Marks Data")
     def highlight_low(val):
-        return "color: red; font-weight: bold;" if val < 35 else "color: black"
+        return "color: red; font-weight: bold;" if val < 35 else "color: white"
     styled_df = df_test.style.applymap(highlight_low, subset=["marks"])
     st.dataframe(styled_df, use_container_width=True)
 
