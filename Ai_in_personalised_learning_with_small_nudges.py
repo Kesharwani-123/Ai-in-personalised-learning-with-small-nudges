@@ -174,7 +174,15 @@ def home():
                 color: #e2e8f0;
             }
             .container {
-                max-width: 900px;
+                st.markdown("""
+    <style>
+    .main {
+        max-width: 900px;
+        margin: auto;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
             }
             .message-box {
                 position: fixed;
