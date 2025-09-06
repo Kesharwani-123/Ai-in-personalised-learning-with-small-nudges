@@ -89,7 +89,7 @@ st.markdown("Track progress, test performance, get nudges, and stay motivated!")
 
 # --- Goal Progress Tracker ---
 if not st.session_state.goals:
-    st.info("No goals yet. Add one from the sidebar 👉")
+    st.info("No goals yet. Add one from the sidebar 👈")
 else:
     for g, info in st.session_state.goals.items():
         st.subheader(f"🎯 {g}")
@@ -119,8 +119,8 @@ else:
             st.balloons()
 
 # --- Mood Check ---
-st.header("💬 How much syllabus needs to be covered?")
-mood = st.text_area("Write down...")
+st.header("Syllabus needs to be covered")
+mood = st.text_area("Write down 👇")
 
 # --- Monthly Test Marks ---
 st.header("📚 Monthly Test Performance")
@@ -140,22 +140,6 @@ with col1:
             st.session_state.tests.append({"month": month, "subject": subject, "marks": marks})
         st.success(f"✅ Saved subject-wise marks for {month}")
 
-with col2:
-    if st.button("💡OK & SAVE"):
-        if st.session_state.tests:
-            df_test = pd.DataFrame(st.session_state.tests)
-            avg_score = df_test["marks"].mean()
-
-            # Generate nudge
-            if avg_score >= 75:
-                st.success("🚀 Outstanding! You're consistently performing well! ⭐")
-                st.info("💡 Quote: 'Success is the sum of small efforts, repeated day in and day out.'")
-            elif avg_score >= 50:
-                st.info("🙂 Good job! Keep pushing to reach higher scores 💪")
-                st.info("💡 Quote: 'Consistency is the key to mastery.'")
-            else:
-                st.warning("⚠️ You need more practice. Focus on weak subjects 🔎")
-                st.info("💡 Quote: 'Failure is simply the opportunity to begin again, this time more intelligently.'")
 
 # --- Display Test Marks & Graphs ---
 if st.session_state.tests:
