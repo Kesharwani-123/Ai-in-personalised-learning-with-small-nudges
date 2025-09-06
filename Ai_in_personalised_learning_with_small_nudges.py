@@ -35,23 +35,23 @@ quotes = [
     "Your hard work will pay off!",
     "Don’t stop until you’re proud.",
     "Difficult roads lead to beautiful destinations.",
-    "Consistency is the key to success!"
-    "Small steps every day lead to big results."
-    "Your future is created by what you do today."
-    "Dream big, start small, act now."
-    "Every mistake is a step closer to success."
-    "Focus + Consistency = Success."
-    "Don’t stop until you’re proud."
-    "Push yourself, because no one else will."
-    "Believe in yourself and magic happens."
-    "Winners are not afraid of losing."
-    "Discipline is the bridge between goals and success."
-    "Your only limit is you."
-    "Success is the reward of hard work."
-    "Keep going, you’re closer than you think."
-    "Stay positive, work hard, make it happen."
+    "Consistency is the key to success!",
+    "Small steps every day lead to big results.",
+    "Your future is created by what you do today.",
+    "Dream big, start small, act now.",
+    "Every mistake is a step closer to success.",
+    "Focus + Consistency = Success.",
+    "Push yourself, because no one else will.",
+    "Believe in yourself and magic happens.",
+    "Winners are not afraid of losing.",
+    "Discipline is the bridge between goals and success.",
+    "Your only limit is you.",
+    "Success is the reward of hard work.",
+    "Keep going, you’re closer than you think.",
+    "Stay positive, work hard, make it happen.",
     "Consistency beats motivation."
 ]
+
 # --- Sidebar ---
 with st.sidebar:
     st.title("⚙️ Goal & Subject Settings")
@@ -168,32 +168,63 @@ if st.session_state.tests:
     styled_df = df_test.style.applymap(highlight_low, subset=["marks"])
     st.dataframe(styled_df, use_container_width=True)
 
-    # Subject-wise Performance Graph
+    # 🎨 Subject-wise Performance Graph
     st.subheader("📈 Subject-wise Performance Over Months")
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8, 5))
+    colors = {
+        "Maths": "dodgerblue",
+        "Science": "orange",
+        "English": "green",
+        "Physics": "purple",
+        "Chemistry": "red"
+    }
+
     for subj in df_test["subject"].unique():
         subj_df = df_test[df_test["subject"] == subj]
         monthly_avg = subj_df.groupby("month")["marks"].mean().reindex(
             ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
         )
-        ax.plot(monthly_avg.index, monthly_avg.values, marker="o", label=subj)
+        ax.plot(
+            monthly_avg.index,
+            monthly_avg.values,
+            marker="o",
+            markersize=8,
+            linewidth=2,
+            label=subj,
+            color=colors.get(subj, None)
+        )
 
-    ax.set_ylabel("Marks")
-    ax.set_xlabel("Months")
-    ax.set_title("Performance per Subject Across Months")
-    ax.legend(title="Subjects")
+    ax.set_ylabel("Marks", fontsize=12, fontweight="bold")
+    ax.set_xlabel("Months", fontsize=12, fontweight="bold")
+    ax.set_title("Performance per Subject Across Months", fontsize=14, fontweight="bold")
+    ax.legend(title="Subjects", fontsize=10)
     ax.set_ylim(0, 100)
+    ax.grid(True, linestyle="--", alpha=0.6)
     st.pyplot(fig)
 
-    # Overall Monthly Performance Graph
+    # 🎨 Overall Monthly Performance Graph
     st.subheader("📊 Monthly Performance (%)")
     monthly_avg = df_test.groupby("month")["marks"].mean().reindex(
         ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
     )
-    fig2, ax2 = plt.subplots()
-    ax2.plot(monthly_avg.index, monthly_avg.values, marker="o", color="blue", linewidth=2)
-    ax2.set_ylabel("Percentage")
-    ax2.set_xlabel("Months")
-    ax2.set_title("Overall Monthly Percentage Performance")
+    fig2, ax2 = plt.subplots(figsize=(8, 5))
+    ax2.plot(
+        monthly_avg.index,
+        monthly_avg.values,
+        marker="o",
+        markersize=8,
+        linewidth=2,
+        color="blue"
+    )
+
+    # Add performance zones
+    ax2.axhspan(0, 40, color="red", alpha=0.1, label="Weak")
+    ax2.axhspan(40, 70, color="yellow", alpha=0.1, label="Average")
+    ax2.axhspan(70, 100, color="green", alpha=0.1, label="Strong")
+
+    ax2.set_ylabel("Percentage", fontsize=12, fontweight="bold")
+    ax2.set_xlabel("Months", fontsize=12, fontweight="bold")
+    ax2.set_title("Overall Monthly Percentage Performance", fontsize=14, fontweight="bold")
     ax2.set_ylim(0, 100)
+    ax2.grid(True, linestyle="--", alpha=0.6)
     st.pyplot(fig2)
