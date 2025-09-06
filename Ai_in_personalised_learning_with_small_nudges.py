@@ -119,8 +119,8 @@ else:
             st.balloons()
 
 # --- Mood Check ---
-st.header("💬 How do you feel?")
-mood = st.text_area("Write your thoughts...")
+st.header("💬 How much syllabus needs to be covered?")
+mood = st.text_area("Write down...")
 
 # --- Monthly Test Marks ---
 st.header("📚 Monthly Test Performance")
@@ -141,7 +141,7 @@ with col1:
         st.success(f"✅ Saved subject-wise marks for {month}")
 
 with col2:
-    if st.button("💡 Get Nudges"):
+    if st.button("💡OK & SAVE"):
         if st.session_state.tests:
             df_test = pd.DataFrame(st.session_state.tests)
             avg_score = df_test["marks"].mean()
@@ -186,7 +186,7 @@ if st.session_state.tests:
     st.pyplot(fig)
 
     # Overall Monthly Performance Graph
-    st.subheader("📊 Overall Monthly Performance (%)")
+    st.subheader("📊 Monthly Performance (%)")
     monthly_avg = df_test.groupby("month")["marks"].mean().reindex(
         ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
     )
