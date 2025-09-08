@@ -89,7 +89,7 @@ st.markdown("Track progress, test performance, get nudges, and stay motivated!")
 
 # --- Goal Progress Tracker ---
 if not st.session_state.goals:
-    st.info("No goals yet. Add one from the sidebar 👉")
+    st.info("No goals yet. Add one from the sidebar 👈")
 else:
     for g, info in st.session_state.goals.items():
         st.subheader(f"🎯 {g}")
@@ -118,9 +118,9 @@ else:
             st.success("✅ Goal Completed!")
             st.balloons()
 
-# --- Mood Check ---
-st.header("💬 How much syllabus needs to be covered?")
-mood = st.text_area("Write down...")
+# --- SYLLABUS CHECK ---
+st.header("Syllabus needs to be covered")
+mood = st.text_area("Write down 👇")
 
 # --- Monthly Test Marks ---
 st.header("📚 Monthly Test Performance")
@@ -141,7 +141,7 @@ with col1:
         st.success(f"✅ Saved subject-wise marks for {month}")
 
 with col2:
-    if st.button("💡OK & SAVE"):
+    if st.button("💡Nudges"):
         if st.session_state.tests:
             df_test = pd.DataFrame(st.session_state.tests)
             avg_score = df_test["marks"].mean()
