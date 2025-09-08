@@ -139,6 +139,16 @@ with col1:
         for subject, marks in marks_data.items():
             st.session_state.tests.append({"month": month, "subject": subject, "marks": marks})
         st.success(f"✅ Saved subject-wise marks for {month}")
+# Generate nudge
+if avg_score >= 75:
+st.success("🚀 Outstanding! You're consistently performing well! ⭐")
+st.info("💡 Quote: 'Success is the sum of small efforts, repeated day in and day out.'")
+elif avg_score >= 50:
+st.info("🙂 Good job! Keep pushing to reach higher scores 💪")
+st.info("💡 Quote: 'Consistency is the key to mastery.'")
+else:
+st.warning("⚠️ You need more practice. Focus on weak subjects 🔎")
+st.info("💡 Quote: 'Failure is simply the opportunity to begin again, this time more intelligently.'")
 
 
 # --- Display Test Marks & Graphs ---
